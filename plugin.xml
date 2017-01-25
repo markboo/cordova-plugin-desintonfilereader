@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
+        id="cordova-plugin-desintonfilereader"
+        version="0.0.1">
+    
+    <name>FileReader</name>
+    <description>Cordova DesintonFileReader Plugin</description>
+    <license>Apache 2.0</license>
+    <keywords>cordova,file,reader,opener</keywords>
+    
+    <js-module src="www/desintonfilereader.js" name="desintonfilereader">
+        <clobbers target="desintonfilereader" />
+    </js-module>
+    
+    <platform name="ios">
+        <config-file target="config.xml" parent="/*">
+            <feature name="DesintonFileReader">
+                <param name="ios-package" value="CDVFileReader"/>
+            </feature>
+        </config-file>
+        
+        <config-file target="*-Info.plist" parent="CFBundleURLTypes">
+            <array>
+                <dict>
+                    <key>CFBundleURLName</key>
+                    <string>demo</string>
+                    <key>CFBundleURLIconFile</key>
+                    <string>icon</string>
+                    <key>CFBundleTypeRole</key>
+                    <string>Editor</string>
+                    <key>CFBundleURLSchemes</key>
+                    <array>
+                      <string>Open</string>
+                    </array>
+                </dict>
+            </array>
+        </config-file>
+        
+        <config-file target="*-Info.plist" parent="CFBundleDocumentTypes">
+            <array>
+                <dict>
+                    <key>CFBundleTypeName</key>
+                    <string>DATA Document</string>
+                    <key>LSHandlerRank</key>
+                    <string>Default</string>
+                    <key>CFBundleTypeRole</key>
+                    <string>Editor</string>
+                    <key>CFBundleTypeExtensions</key>
+                    <array>
+                        <string>csv</string>
+                        <string>txt</string>
+                        <string>xls</string>
+                        <string>xlsx</string>
+                    </array>
+                    <key>LSItemContentTypes</key>
+                    <array>
+                        <string>public.comma-separated-values-text</string>
+                        <string>public.text</string>
+                        <string>public.data</string>
+                    </array>
+                </dict>
+            </array>
+        </config-file>
+        
+        <header-file src="src/ios/CDVFileReader.h" />
+        <source-file src="src/ios/CDVFileReader.m" />
+        <header-file src="src/ios/AppDelegate+DesintonFileReader.h" />
+        <source-file src="src/ios/AppDelegate+DesintonFileReader.m" />
+    </platform>
+    
+</plugin>
