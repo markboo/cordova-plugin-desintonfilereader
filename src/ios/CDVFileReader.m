@@ -46,4 +46,26 @@
     [self.commandDelegate sendPluginResult:commandResult callbackId:self.callbackId];
 }
 
+/*!
+ @method
+ @abstract 提取文件中手机号号码
+ */
+- (void) readFile
+{
+    NSString *str = @"lasdkjflakjsdflj18611291775laskdjflasjd15810728160";
+    
+    NSString * phoneRegex = @"((13[0-9])|(15[^4,\\D])|(18[0,0-9]))\\d{8}";
+    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:phoneRegex options:0 error:nil];
+    
+    NSArray *matches = [regex matchesInString:str options:0 range:NSMakeRange(0, str.length)];
+    
+    if ( matches.count != 0 )
+    {
+        for( NSTextCheckingResult *result in matches ){
+            NSRange matchRange = [result range];
+            NSLog( @"----------%lu,%lu,%@", matchRange.location, matchRange.length, [str substringWithRange:matchRange] );
+        }
+    }
+}
+
 @end
