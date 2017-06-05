@@ -21,4 +21,7 @@
 - (void) startWork:(CDVInvokedUrlCommand*)command;
 - (void) callback:(NSString*)filename;
 
+- (int) readPhoneNumberFormFile: (NSString*) fileNameWithPath;
+- (BOOL) removeAllFilesAtDirectory;
+
 @end

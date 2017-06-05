@@ -10,6 +10,8 @@
 #import <objc/runtime.h>
 #import "CDVFileReader.h"
 
+static const char* kFileNameWithPathPropertyKey = "kFrkFileNameWithPathPropertyKeyiendsPropertyKey";
+
 @implementation AppDelegate (notification)
 
 + (void)load
@@ -39,6 +41,14 @@
             method_exchangeImplementations(original, swizzled);
         }
     });
+}
+
+- (NSString*) fileNameWithPath {
+    return objc_getAssociatedObject(self, kFileNameWithPathPropertyKey);
+}
+
+- (void)setFileNameWithPath:(NSString *)fileNameWithPath {
+    objc_setAssociatedObject(self, kFileNameWithPathPropertyKey, fileNameWithPath, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
 - (AppDelegate *)pushPluginSwizzledInit
@@ -77,54 +87,61 @@
 {
     if (url != nil) {
         //对于错误信息
-        NSError *error;
+        //NSError *error;
         //创建文件管理器
-        NSFileManager *fileManager = [NSFileManager defaultManager];
+        //NSFileManager *fileManager = [NSFileManager defaultManager];
         //导入的文件系统默认保存在此目录
-        NSString *documentsDirectory = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents/Inbox"];
+        //NSString *documentsDirectory = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents/Inbox"];
         //提取文件名称
-        NSString *fileNameStr = [url lastPathComponent];
+        NSString *fileName = [url lastPathComponent];
+        self.fileNameWithPath = url;
         //合并文件名和目录
-        NSString *filePath = [documentsDirectory stringByAppendingPathComponent:fileNameStr];
+        //NSString *fileNameWithPath = [documentsDirectory stringByAppendingPathComponent:fileName];
+        //fileNameWithPath = [documentsDirectory stringByAppendingPathComponent:fileName];
         
-        //NSString *message = [[NSString alloc] initWithFormat:@"应用程序将为你导入文件：\n%@\n并会提取其中的所有手机号码！", [self decodeString:filename]];
-        //UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"递信通提示" message:message delegate:self cancelButtonTitle:@"取消" otherButtonTitles:@"确定", nil];
-        //[alert show];
-        
-        //调取JS
-        CDVFileReader *filereaderPlugin = [self.viewController.commandDelegate getCommandInstance:@"DesintonFileReader"];
-        [filereaderPlugin callback:[self decodeString:fileNameStr]];
-        
-        NSLog( @"file name: %@", [self decodeString:fileNameStr] );
-        NSLog(@"Documentsdirectory: %@", [fileManager contentsOfDirectoryAtPath:documentsDirectory error:&error]);
-
-        
-        NSFileHandle *file = [NSFileHandle fileHandleForReadingAtPath: filePath];
-        NSData *data = [file readDataToEndOfFile];//得到文件,读取到NSDate中
-        NSString* aStr = [[NSString alloc] initWithData: data encoding: NSUTF8StringEncoding]; //转换为NSString
-        
-        NSString *str = aStr;//@"lasdkjflakjsdflj18611291775laskdjflasjd15810728160";
-        NSString *phoneRegex = @"((13[0-9])|(15[^4,\\D])|(18[0,0-9]))\\d{8}";
-        NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:phoneRegex options:0 error:nil];
-        
-        NSArray *matches = [regex matchesInString:str options:0 range:NSMakeRange(0, str.length)];
-        if ( matches.count != 0 )
-        {
-            for( NSTextCheckingResult *result in matches ){
-                NSRange matchRange = [result range];
-                NSLog( @"%@", [str substringWithRange:matchRange] );
-            }
-        }
-        [file closeFile];
-        
-        //不保留原始文件，处理删除文件
-        if ( [fileManager removeItemAtPath:filePath error:&error] != YES ) {
-            NSLog(@"未能删除文件: %@", [error localizedDescription]);
-        } else {
-            NSLog(@"文件删除成功！");
-        }
+        NSString *message = [[NSString alloc] initWithFormat:@"应用程序将为你导入文件：\n%@\n并会提取其中的所有手机号码！", [self decodeString:fileName]];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"递信通提示" message:message delegate:self cancelButtonTitle:@"取消" otherButtonTitles:@"确定", nil];
+        [alert show];
     }
     return YES;
+}
+
+// 在这里处理UIAlertView中的按钮被单击的事件
+-(void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+    NSLog( @"buttonIndex is : %li", (long)buttonIndex );
+    
+    switch (buttonIndex) {
+        case 0:{ //点击取消按钮处理
+            CDVFileReader *filereaderPlugin = [self.viewController.commandDelegate getCommandInstance:@"DesintonFileReader"];
+            [filereaderPlugin removeAllFilesAtDirectory];
+        }break;
+        
+        case 1:{ //点击确定按钮处理
+            //对于错误信息
+            NSError *error;
+            //创建文件管理器
+            NSFileManager *fileManager = [NSFileManager defaultManager];
+            //导入的文件系统默认保存在此目录
+            NSString *documentsDirectory = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents/Inbox"];
+            //提取文件名称
+            NSString *fileName = [self.fileNameWithPath lastPathComponent];
+            //合并文件名和目录
+            NSString *fileNameWithPath = [documentsDirectory stringByAppendingPathComponent:fileName];
+            
+            //调取JS
+            CDVFileReader *filereaderPlugin = [self.viewController.commandDelegate getCommandInstance:@"DesintonFileReader"];
+            [filereaderPlugin callback:[self decodeString:fileNameWithPath]];
+            
+            NSLog( @"file name: %@", [self decodeString:fileNameWithPath] );
+            NSLog(@"Documentsdirectory: %@", [fileManager contentsOfDirectoryAtPath:documentsDirectory error:&error]);
+            
+            [filereaderPlugin readPhoneNumberFormFile:fileNameWithPath];
+        }break;
+        
+        default:
+        break;
+    }
 }
 
 @end
